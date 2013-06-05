@@ -3,11 +3,11 @@ Coucher
 
 A simple python couchdb api client library
 
-Why another library?:
----------------------
+Why another library?
+--------------------
 
-* Because i needed something simple
-* I don't wanted object mapping, i prefer to use `json-schema <http://json-schema.org/>`_ and validate when needed
+* Because I needed something simpler
+* I didn't want object mapping, i prefer using `json-schema <http://json-schema.org/>`_ and validate when needed
 * I wanted to use ijson, to reduce memory usage in big view responses
 
 Features
@@ -21,7 +21,7 @@ Features
 TODO
 ----
 
-This is alpha software, use at your own risk, i'm not responsable of your dead kittens
+This is alpha software, use at your own risk, i'm not responsible for your dead kittens
 
 * complete couchdb api
 * design documents
