@@ -1,6 +1,8 @@
 import re
 import json
 
+import six
+
 from ijson.common import ObjectBuilder
 
 # took from couchdb-python
@@ -18,7 +20,7 @@ def encode_view_options(options):
                 return isinstance(value, str)
 
         if name in ('key', 'startkey', 'endkey') \
-                or not is_string():
+                or not isinstance(value, six.srting_types):
             value = json.dumps(value)
         retval[name] = value
     return retval
