@@ -3,10 +3,10 @@ import json
 
 from requests import Session
 
-from utils import validate_dbname, encode_view_options, path_from_name
-from utils import ijson_items
+from .utils import validate_dbname, encode_view_options, path_from_name
+from .utils import ijson_items
 
-import excepts
+from . import excepts
 
 class Document(dict):
     @property
@@ -48,12 +48,12 @@ class Server(object):
                 raise excepts.AuthFail
             elif request.status_code == 412:
                 raise excepts.DBExists
-            raise Exception, request.status_code
+            raise Exception(request.status_code)
 
         response = request.json()
         ok = response.get("ok", False)
         if not ok:
-            raise Exception, response
+            raise Exception(response)
 
         return database
 
@@ -69,7 +69,7 @@ class Server(object):
                 raise excepts.AuthFail
             elif request.status_code == 404:
                 raise excepts.DBNotExists
-            raise Exception, request.status_code
+            raise Exception(request.status_code)
 
 class View(object):
     def __init__(self, name, db, **options):
@@ -101,7 +101,7 @@ class View(object):
             except StopIteration:
                 pass
         else:
-            raise Exception, response.status_code
+            raise Exception(response.status_code)
 
     def __iter__(self):
         while self._prefetched_items:
@@ -109,7 +109,7 @@ class View(object):
         for _type, item in self.iterator:
             # this should never happend
             if _type != "rows.item":
-                print "Invalid Row Type", _type
+                print("Invalid Row Type %s" % _type)
                 continue
             yield item
 
@@ -155,7 +155,7 @@ class Database(object):
             response = self.session.get(self.database + "/_changes",
                     params=opts, stream=True)
             if not response.ok:
-                raise Exception, response.status_code
+                raise Exception(response.status_code)
 
             for line in response.iter_lines(chunk_size=1):
                 if line:
@@ -163,7 +163,7 @@ class Database(object):
                 elif yield_beats:
                     yield {}
         else:
-            raise NotImplementedError, "feed '%s' is not implemented" % feed
+            raise NotImplementedError("feed '%s' is not implemented" % feed)
 
     def delete(self):
         """
@@ -183,10 +183,10 @@ class Database(object):
             return response.json()
 
         if response.status_code == 409:
-            raise excepts.DocConflict, "_id: %s" % doc["_id"]
+            raise excepts.DocConflict("_id: %s" % doc["_id"])
 
-        raise Exception, "Can't save doc '%s' error '%s'" % (doc,
-                response.status_code)
+        raise Exception("Can't save doc '%s' error '%s'" % (doc,
+                response.status_code))
 
     def update(self, docs, **options):
         options.update(docs=docs)
@@ -195,7 +195,7 @@ class Database(object):
 
         if response.ok:
             return response.json()
-        raise Exception, "Error updating docs %s" % response.status_code
+        raise Exception("Error updating docs %s" % response.status_code)
 
     def view(self, name, **options):
         return View(name, self, **options)
@@ -211,7 +211,7 @@ class Database(object):
                 if default:
                     return default
                 raise excepts.DocNotExists
-            raise Exception, response.status_code
+            raise Exception(response.status_code)
 
         return Document(response.json())
 

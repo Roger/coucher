@@ -1,3 +1,2 @@
-import client
-import design
-from excepts import *
+from . import client
+from .excepts import *
