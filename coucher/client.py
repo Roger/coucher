@@ -247,16 +247,22 @@ class Database(object):
         Creates or Updates a document
         """
 
-        response = self.session.post(self.database,
+        request = self.session.post(self.database,
                 data=json.dumps(doc), params=options)
-        if response.ok:
-            return response.json()
+        if request.ok:
+            response = request.json()
+            doc = copy.copy(doc)
+            doc["_id"] = response.get("id")
+            doc["_rev"] = response.get("rev")
+            if isinstance(doc, dict):
+                doc = Document(doc)
+            return doc
 
-        if response.status_code == 409:
+        if request.status_code == 409:
             raise excepts.DocConflict("_id: %s" % doc["_id"])
 
         raise Exception("Can't save doc '%s' error '%s'" % (doc,
-                response.status_code))
+                request.status_code))
 
     def update(self, docs, **options):
         options.update(docs=docs)
