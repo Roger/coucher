@@ -1,25 +1,11 @@
-import re
-import os
 import six
 
 import pytest
 
 from coucher import client, excepts
+from .utils import get_auth_and_host
 
-uri = os.environ.get("COUCHER_URI") or "http://localhost:5984"
-
-uri_re = re.compile("(?P<proto>https?://)((?P<user>[a-zA-Z]*?)"\
-        "(:(?P<pass>.*?))?@)?(?P<host>.*)")
-
-groups = uri_re.match(uri).groupdict(default=None)
-auth = []
-user = groups.get("user")
-passwd = groups.get("pass")
-
-user and auth.append(user)
-passwd and auth.append(passwd)
-
-host = "{proto}{host}".format(**groups)
+auth, host = get_auth_and_host()
 
 test_db_name = "coucher_tests_temporal_db"
 
