@@ -1,6 +1,9 @@
 Coucher
 =======
 
+.. image:: https://secure.travis-ci.org/Roger/coucher.png?branch=master
+   :target: http://travis-ci.org/Roger/coucher
+
 A simple python couchdb api client library
 
 Why another library?
