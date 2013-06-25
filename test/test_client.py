@@ -55,6 +55,7 @@ def test_missing(server):
     Test if raise DBNotExists trying to access a non existing database
     """
 
+    assert "non_existing_database" not in server
     with pytest.raises(excepts.DBNotExists):
         server["non_existing_database"]
 
@@ -65,6 +66,7 @@ def test_exists(server):
 
     db = server.create_db(test_db_name)
     assert test_db_name in server
+    assert server[test_db_name]
     server.delete_db(db)
     assert test_db_name not in server
 
@@ -105,3 +107,10 @@ def test_uuids(server):
     assert len(server.uuids()) == 1
     assert len(server.uuids(10)) == 10
     assert isinstance(server.uuids()[0], six.string_types)
+
+def test_version(server):
+    """
+    Test server generated uuids
+    """
+
+    assert isinstance(server.version(), six.string_types)
