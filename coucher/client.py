@@ -29,10 +29,62 @@ class Server(object):
         self.session.headers = {"Content-Type": "application/json"}
 
     def __getitem__(self, name):
-        return Database(name, server=self)
+        return Database(name, server=self, create=False)
+
+    def __len__(self):
+        return len(self.get_databases())
+
+    def __nonzero__(self):
+        """
+        Returns if server is available
+        """
+
+        try:
+            self.session.head(self.host)
+            return True
+        except:
+            return False
 
     def __delitem__(self, name):
         self.delete_db(name)
+
+    def __contains__(self, db_or_name):
+        """
+        Tests if the database exists
+        """
+
+        name = db_or_name
+        if isinstance(db_or_name, Database):
+            name = db_or_name.name
+
+        request = self.session.head(self.host + "/" + name)
+        if request.status_code == 404:
+            return False
+        return True
+
+    def __iter__(self):
+        """
+        Iterates over all the databases and returns Database instances
+        """
+
+        return (Database(name, server=self) for name in self.get_databases())
+
+    def uuids(self, count=1):
+        """
+        Returns a a lists of "count" uuids generated in the server
+        """
+
+        request = self.session.get(self.host + "/_uuids",
+                params={"count": count})
+        return request.json()["uuids"]
+
+    def get_databases(self):
+        request = self.session.get(self.host + "/_all_dbs")
+        return request.json()
+
+    def version(self):
+        request = self.session.get(self.host)
+        return request.json()["version"]
 
     def create_db(self, name):
         """
@@ -41,28 +93,19 @@ class Server(object):
         Posible Errors: DBExists, AuthFail
         """
 
-        database = self[name]
-        request = self.session.put(self.host + "/" + name)
-        if not request.ok:
-            if request.status_code == 401:
-                raise excepts.AuthFail
-            elif request.status_code == 412:
-                raise excepts.DBExists
-            raise Exception(request.status_code)
+        return Database(name, server=self, create=True)
 
-        response = request.json()
-        ok = response.get("ok", False)
-        if not ok:
-            raise Exception(response)
-
-        return database
-
-    def delete_db(self, name):
+    def delete_db(self, db_or_name):
         """
         Try to delete database or raise error
 
         Posible Errors: DBNotExists, AuthFail
         """
+
+        name = db_or_name
+        if isinstance(db_or_name, Database):
+            name = db_or_name.name
+
         request = self.session.delete(self.host + "/" + name)
         if not request.ok:
             if request.status_code == 401:
@@ -115,13 +158,18 @@ class View(object):
 
 class Database(object):
     def __init__(self, name, server=None, create=False):
-        validate_dbname(name)
         self.server = server or Server()
         self.session = server.session
         self.name = name
         self.database = server.host + "/" + name
         if create:
-            self.server.create_db(self.name)
+            self.create()
+        else:
+            response = self.session.head(self.database)
+            if not response.ok:
+                if response.status_code == 404:
+                    raise excepts.DBNotExists
+                raise Exception(response.status_code)
 
     def __getitem__(self, docid):
         """
@@ -132,6 +180,27 @@ class Database(object):
 
     def __delitem__(self, docid):
         self.delete_doc(docid)
+
+    def create(self):
+        """
+        Try to create a new database or raise error
+
+        Posible Errors: DBExists, AuthFail
+        """
+
+        request = self.session.put(self.database)
+        if not request.ok:
+            if request.status_code == 401:
+                raise excepts.AuthFail
+            elif request.status_code == 412:
+                raise excepts.DBExists
+            raise Exception(request.status_code)
+
+        response = request.json()
+        ok = response.get("ok", False)
+        if not ok:
+            raise Exception(response)
+
 
     def delete_doc(self, doc):
         """
