@@ -158,7 +158,6 @@ class View(object):
 
 class Database(object):
     def __init__(self, name, server=None, create=False):
-        validate_dbname(name)
         self.server = server or Server()
         self.session = server.session
         self.name = name
