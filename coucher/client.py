@@ -51,12 +51,17 @@ class Server(object):
 
         return Database(name, server=self, create=True)
 
-    def delete_db(self, name):
+    def delete_db(self, db_or_name):
         """
         Try to delete database or raise error
 
         Posible Errors: DBNotExists, AuthFail
         """
+
+        name = db_or_name
+        if isinstance(db_or_name, Database):
+            name = db_or_name.name
+
         request = self.session.delete(self.host + "/" + name)
         if not request.ok:
             if request.status_code == 401:
