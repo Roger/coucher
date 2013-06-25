@@ -31,8 +31,43 @@ class Server(object):
     def __getitem__(self, name):
         return Database(name, server=self, create=False)
 
+    def __len__(self):
+        return len(self.get_databases())
+
+    def __nonzero__(self):
+        """
+        Returns if server is available
+        """
+
+        try:
+            self.session.head(self.host)
+            return True
+        except:
+            return False
+
     def __delitem__(self, name):
         self.delete_db(name)
+
+    def __contains__(self, db_or_name):
+        """
+        Tests if the database exists
+        """
+
+        name = db_or_name
+        if isinstance(db_or_name, Database):
+            name = db_or_name.name
+
+        request = self.session.head(self.host + "/" + name)
+        if request.status_code == 404:
+            return False
+        return True
+
+    def __iter__(self):
+        """
+        Iterates over all the databases and returns Database instances
+        """
+
+        return (Database(name, server=self) for name in self.get_databases())
 
     def uuids(self, count=1):
         """
@@ -42,6 +77,15 @@ class Server(object):
         request = self.session.get(self.host + "/_uuids",
                 params={"count": count})
         return request.json()["uuids"]
+
+    def get_databases(self):
+        request = self.session.get(self.host + "/_all_dbs")
+        return request.json()
+
+    def version(self):
+        request = self.session.get(self.host)
+        return request.json()["version"]
+
     def create_db(self, name):
         """
         Try to create a new database or raise error
