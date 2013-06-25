@@ -34,6 +34,14 @@ class Server(object):
     def __delitem__(self, name):
         self.delete_db(name)
 
+    def uuids(self, count=1):
+        """
+        Returns a a lists of "count" uuids generated in the server
+        """
+
+        request = self.session.get(self.host + "/_uuids",
+                params={"count": count})
+        return request.json()["uuids"]
     def create_db(self, name):
         """
         Try to create a new database or raise error
