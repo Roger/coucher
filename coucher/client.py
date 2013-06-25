@@ -1,3 +1,4 @@
+import copy
 import ijson
 import json
 import six
@@ -215,6 +216,9 @@ class Database(object):
                 params=dict(rev=doc["_rev"]))
         if response.ok:
             return response.json()
+
+        if response.status_code == 404:
+            raise excepts.DocNotExists
 
     def changes(self, feed="continuous", include_docs=False, yield_beats=False,
             **opts):
