@@ -1,5 +1,6 @@
 import ijson
 import json
+import six
 
 from requests import Session
 
@@ -207,7 +208,7 @@ class Database(object):
         Removes a document
         """
 
-        if isinstance(doc, basestring):
+        if isinstance(doc, six.string_types):
             doc = self[doc]
 
         response = self.session.delete(self.database + "/" + doc["_id"],

@@ -13,14 +13,8 @@ def encode_view_options(options):
     """
     retval = {}
     for name, value in options.items():
-        def is_string():
-            try:
-                return isinstance(value, basestring)
-            except NameError:
-                return isinstance(value, str)
-
         if name in ('key', 'startkey', 'endkey') \
-                or not isinstance(value, six.srting_types):
+                or not isinstance(value, six.string_types):
             value = json.dumps(value)
         retval[name] = value
     return retval
