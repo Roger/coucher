@@ -19,4 +19,4 @@ def get_auth_and_host():
     passwd and auth.append(passwd)
 
     host = "{proto}{host}".format(**groups)
-    return (auth, host)
+    return (tuple(auth), host)
