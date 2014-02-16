@@ -3,8 +3,6 @@ import json
 
 import six
 
-from ijson.common import ObjectBuilder
-
 # took from couchdb-python
 def encode_view_options(options):
     """
@@ -43,28 +41,3 @@ def path_from_name(name, type, db):
     design, name = name.split('/', 1)
     return [db, '_design', design, type, name]
 # /took from couchdb-python
-
-# ijson.common.items with support of more than one prefix
-def ijson_items(prefixed_events, prefixes):
-    '''
-    An iterator returning native Python objects constructed from the events
-    under a given prefix.
-    '''
-
-    prefixed_events = iter(prefixed_events)
-    try:
-        while True:
-            current, event, value = next(prefixed_events)
-            if current in prefixes:
-                current_prefix = current
-                if event in ('start_map', 'start_array'):
-                    builder = ObjectBuilder()
-                    end_event = event.replace('start', 'end')
-                    while (current, event) != (current_prefix, end_event):
-                        builder.event(event, value)
-                        current, event, value = next(prefixed_events)
-                    yield current_prefix, builder.value
-                else:
-                    yield current_prefix, value
-    except StopIteration:
-        pass

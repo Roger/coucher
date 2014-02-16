@@ -5,8 +5,7 @@ import six
 
 from requests import Session
 
-from .utils import validate_dbname, encode_view_options, path_from_name
-from .utils import ijson_items
+from .utils import encode_view_options, path_from_name
 
 from . import excepts
 
@@ -128,35 +127,28 @@ class View(object):
         if "keys" in options:
             data = json.dumps({"keys": options.pop("keys")})
             response = db.session.post(view, stream=True,
-                    data=data, params=params)
+                                            data=data, params=params)
         else:
             response = db.session.get(view, stream=True, params=params)
 
         if response.ok:
-            self.iterator = ijson_items(ijson.parse(response.raw),
-                    ['total_rows', 'offset', 'rows.item'])
-
-            try:
-                for t in ("total_rows", "offset"):
-                    _type, item = next(self.iterator)
-                    if _type == t:
-                        setattr(self, t, item)
-                    else:
-                        self._prefetched_items.append(item)
-            except StopIteration:
-                pass
+            self.iterator = response.iter_lines(chunk_size=2048)
         else:
             raise Exception(response.status_code)
+        first_line = next(self.iterator)
+        first_line += b"]}"
+        header = json.loads(first_line)
+        self.total_rows = header["total_rows"]
+        self.offset = header["offset"]
 
     def __iter__(self):
-        while self._prefetched_items:
-            yield self._prefetched_items.pop(0)
-        for _type, item in self.iterator:
-            # this should never happend
-            if _type != "rows.item":
-                print("Invalid Row Type %s" % _type)
+        for item in self.iterator:
+            if item == b"]}" or not item:
                 continue
-            yield item
+            if item.endswith(b","):
+                item = item[:-1]
+            yield json.loads(item)
+
 
 class Database(object):
     def __init__(self, name, server=None, create=False):
