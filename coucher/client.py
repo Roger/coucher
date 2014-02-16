@@ -225,17 +225,17 @@ class Database(object):
             raise excepts.DocNotExists
 
     def changes(self, feed="continuous", include_docs=False, yield_beats=False,
-            **opts):
+                **opts):
         opts.update(dict(feed=feed, include_docs=include_docs))
         opts = encode_view_options(opts)
 
         if feed == "continuous":
             response = self.session.get(self.database + "/_changes",
-                    params=opts, stream=True)
+                                        params=opts, stream=True)
             if not response.ok:
                 raise Exception(response.status_code)
 
-            for line in response.iter_lines(chunk_size=1):
+            for line in response.iter_lines(chunk_size=2048):
                 if line:
                     yield json.loads(line)
                 elif yield_beats:
