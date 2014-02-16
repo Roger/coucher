@@ -23,9 +23,12 @@ class Document(dict):
 
 
 class Server(object):
-    def __init__(self, host="http://localhost:5984", auth=None):
+    def __init__(self, host="http://localhost:5984", auth=None,
+                 trust_env=False):
         self.host = host
         self.session = Session()
+        # trust env make use of get_netrc that is soooo slow
+        self.session.trust_env = trust_env
         self.session.auth = auth
         self.session.headers = {"Content-Type": "application/json"}
 
