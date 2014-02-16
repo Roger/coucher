@@ -1,5 +1,10 @@
 import copy
-import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
+    print("Using stdlib json, expect poor performance")
+    print("For speedup install simplejson")
 import six
 
 from requests import Session
