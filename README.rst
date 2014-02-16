@@ -18,7 +18,7 @@ Features
 
 * Small and simple
 * Uses the well tested `requests library <http://www.python-requests.org/>`_
-* `ijson <https://github.com/isagalaev/ijson>`_ view iterators(big view responses with small memory footprint)
+* View iterators(big view responses with small memory footprint, only one doc in memory for iteration)
 
 
 TODO
