@@ -8,10 +8,12 @@ except ImportError:
 import six
 
 from requests import Session
+from repoze.lru import LRUCache
 
 from .utils import encode_view_options, path_from_name
 
 from . import excepts
+
 
 class Document(dict):
     @property
@@ -163,6 +165,9 @@ class Database(object):
         self.session = server.session
         self.name = name
         self.database = server.host + "/" + name
+
+        self.cache = LRUCache(100)
+
         if create:
             self.create()
         else:
@@ -284,7 +289,13 @@ class Database(object):
         Returns the a document
         """
 
-        response = self.session.get(self.database + "/" + docid)
+        old_doc = self.cache.get(docid, None)
+        headers = None
+        if old_doc:
+            headers = {'If-None-Match': old_doc[0]}
+
+        response = self.session.get(self.database + "/" + docid,
+                                    headers=headers)
         if not response.ok:
             if response.status_code == 404:
                 if default:
@@ -292,7 +303,12 @@ class Database(object):
                 raise excepts.DocNotExists
             raise Exception(response.status_code)
 
-        return Document(response.json())
+        if old_doc and response.headers["etag"] == old_doc[0]:
+            doc = old_doc[1]
+        else:
+            doc = Document(response.json())
+            self.cache.put(docid, (response.headers["etag"], doc))
+        return doc
 
     def __repr__(self):
         return "<Database %s>" % self.name
