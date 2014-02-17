@@ -311,5 +311,11 @@ class Database(object):
             self.cache.put(docid, (response.headers["etag"], doc))
         return doc
 
+    def info(self):
+        response = self.session.get(self.database)
+        if response.ok:
+            return response.json()
+        raise Exception(response)
+
     def __repr__(self):
         return "<Database %s>" % self.name
