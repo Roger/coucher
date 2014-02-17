@@ -3,7 +3,8 @@ Coucher
 
 .. image:: https://secure.travis-ci.org/Roger/coucher.png?branch=master
    :target: http://travis-ci.org/Roger/coucher
-.. image:: https://coveralls.io/repos/Roger/coucher/badge.png :target: https://coveralls.io/r/Roger/coucher 
+.. image:: https://coveralls.io/repos/Roger/coucher/badge.png
+   :target: https://coveralls.io/r/Roger/coucher
 
 A simple python couchdb api client library
 
