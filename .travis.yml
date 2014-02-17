@@ -6,7 +6,10 @@ env:
   - TOX_ENV=pypy
 install:
   - pip install tox
+  - pip install python-coveralls
 script:
   - tox -e $TOX_ENV
 services:
   - couchdb
+after_success:
+  - coveralls --data_file test/.coverage
