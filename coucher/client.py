@@ -1,16 +1,12 @@
 import copy
-try:
-    import simplejson as json
-except ImportError:
-    import json
-    print("Using stdlib json, expect poor performance")
-    print("For speedup install simplejson")
+
 import six
 
 from requests import Session
 from repoze.lru import LRUCache
 
 from .utils import encode_view_options, path_from_name
+from .utils import json, JSON_NEED_DECODE
 
 from . import excepts
 
@@ -129,6 +125,7 @@ class View(object):
         path = "/".join(path_from_name(name, "_view", db.name))
         view = db.server.host + "/" + path
         params = encode_view_options(options)
+        self.encoding = None
 
         self.total_rows = self.offset = None
         self._prefetched_items = []
@@ -144,8 +141,12 @@ class View(object):
             self.iterator = response.iter_lines(chunk_size=2048)
         else:
             raise Exception(response.status_code)
+
+        self.encoding = response.encoding
         first_line = next(self.iterator)
         first_line += b"]}"
+        if JSON_NEED_DECODE:
+            first_line = first_line.decode(self.encoding)
         header = json.loads(first_line)
         self.total_rows = header["total_rows"]
         self.offset = header["offset"]
@@ -156,6 +157,8 @@ class View(object):
                 continue
             if item.endswith(b","):
                 item = item[:-1]
+            if JSON_NEED_DECODE:
+                item = item.decode(self.encoding)
             yield json.loads(item)
 
 
