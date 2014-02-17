@@ -6,7 +6,7 @@ from requests import Session
 from repoze.lru import LRUCache
 
 from .utils import encode_view_options, path_from_name
-from .utils import json, JSON_NEED_DECODE
+from .utils import json
 
 from . import excepts
 
@@ -145,8 +145,7 @@ class View(object):
         self.encoding = response.encoding
         first_line = next(self.iterator)
         first_line += b"]}"
-        if JSON_NEED_DECODE:
-            first_line = first_line.decode(self.encoding)
+        first_line = first_line.decode(self.encoding)
         header = json.loads(first_line)
         self.total_rows = header["total_rows"]
         self.offset = header["offset"]
@@ -157,8 +156,7 @@ class View(object):
                 continue
             if item.endswith(b","):
                 item = item[:-1]
-            if JSON_NEED_DECODE:
-                item = item.decode(self.encoding)
+            item = item.decode(self.encoding)
             yield json.loads(item)
 
 
@@ -240,7 +238,7 @@ class Database(object):
 
             for line in response.iter_lines(chunk_size=2048):
                 if line:
-                    yield json.loads(line)
+                    yield json.loads(line.decode(response.encoding))
                 elif yield_beats:
                     yield {}
         else:

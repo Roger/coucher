@@ -1,15 +1,12 @@
 import re
 
 import six
-JSON_NEED_DECODE = False
 try:
     import simplejson as json
 except ImportError:
     import json
     print("Using stdlib json, expect poor performance")
     print("For speedup install simplejson")
-    if six.PY3:
-        JSON_NEED_DECODE = True
 
 # took from couchdb-python
 def encode_view_options(options):
