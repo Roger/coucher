@@ -32,7 +32,9 @@ class Server(object):
         # trust env make use of get_netrc that is soooo slow
         self.session.trust_env = trust_env
         self.session.auth = auth
-        self.session.headers = {"Content-Type": "application/json"}
+        self.session.headers = {
+                "Content-Type": "application/json",
+                }
 
     def __getitem__(self, name):
         return Database(name, server=self, create=False)
@@ -144,7 +146,8 @@ class View(object):
 
         self.encoding = response.encoding
         first_line = next(self.iterator)
-        first_line += b"]}"
+        if not first_line.endswith("]}"):
+            first_line += b"]}"
         first_line = first_line.decode(self.encoding)
         header = json.loads(first_line)
         self.total_rows = header["total_rows"]
