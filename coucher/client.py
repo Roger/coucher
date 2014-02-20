@@ -146,7 +146,7 @@ class View(object):
 
         self.encoding = response.encoding
         first_line = next(self.iterator)
-        if not first_line.endswith("]}"):
+        if not first_line.endswith(b"]}"):
             first_line += b"]}"
         first_line = first_line.decode(self.encoding)
         header = json.loads(first_line)
