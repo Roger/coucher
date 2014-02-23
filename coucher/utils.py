@@ -22,15 +22,6 @@ def encode_view_options(options):
         retval[name] = value
     return retval
 
-SPECIAL_DB_NAMES = set(['_users'])
-VALID_DB_NAME = re.compile(r'^[a-z][a-z0-9_$()+-/]*$')
-def validate_dbname(name):
-    if name in SPECIAL_DB_NAMES:
-        return name
-    if not VALID_DB_NAME.match(name):
-        raise ValueError('Invalid database name')
-    return name
-
 def path_from_name(name, type, db):
     """
     Expand a 'design/foo' style name to its full path as a list of
