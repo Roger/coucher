@@ -52,6 +52,7 @@ def test_exists(server):
 
     db = server.create_db(test_db_name)
     assert test_db_name in server
+    assert db in server
     assert server[test_db_name]
     server.delete_db(db)
     assert test_db_name not in server
@@ -71,6 +72,12 @@ def test_create_delete_db(server):
 
     with pytest.raises(excepts.DBNotExists):
         server.delete_db(db)
+
+    db = server.create_db(test_db_name)
+    db.delete()
+
+    with pytest.raises(excepts.DBNotExists):
+        db.delete()
 
 def test_len_server(server):
     """
@@ -100,3 +107,17 @@ def test_version(server):
     """
 
     assert isinstance(server.version(), six.string_types)
+
+def test_server_iterate(server):
+    db = server.create_db(test_db_name)
+
+    databases = []
+    for database in server:
+        databases.append(database.name)
+    assert test_db_name in databases
+
+    server.delete_db(db)
+    databases = []
+    for database in server:
+        databases.append(database.name)
+    assert test_db_name not in databases

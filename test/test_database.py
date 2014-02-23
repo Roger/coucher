@@ -47,8 +47,19 @@ def test_get_doc(database):
     """
 
     doc = database.save({"a": "test"})
-    new_doc = database[doc.id]
-    assert doc == new_doc
+    new_doc1 = database[doc.id]
+
+    # test caching
+    new_doc2 = database[doc.id]
+    assert doc == new_doc1 == new_doc2
+
+    # test geting not existing doc
+    with pytest.raises(excepts.DocNotExists):
+        database["NOTEXISTINGID"]
+
+    default_doc = {"a": "default doc"}
+    doc = database.get_doc("NOTEXISTINGID", default=default_doc)
+    assert doc == default_doc
 
 def test_doc_conflict(database):
     """
@@ -86,3 +97,29 @@ def test_view_all_docs(database):
     for i in xrange(view.total_rows):
         assert next(iter_view)["doc"]["test"] == "doc %s" % i
 
+    keys = [doc["_id"] for doc in docs[:10]]
+    view = database.view("_all_docs", include_docs=True, keys=keys)
+    docs = []
+    for row in view:
+        docs.append(row["doc"]["_id"])
+    assert docs == keys
+
+def test_changes(database):
+    docs = [{"_id": "id_%02d" % i, "test": "doc %s" % i} for i in xrange(42)]
+    database.update(docs)
+
+    new_docs = []
+    for row in database.changes(include_docs=True, yield_beats=True,
+                                heartbeat=4, timeout=4):
+        if not row:
+            break
+        doc = row["doc"]
+        del doc["_rev"]
+        new_docs.append(doc)
+    assert docs == new_docs
+
+def test_db_info(database):
+    assert database.info()["db_name"] == test_db_name
+
+def test_db_repr(database):
+    assert repr(database) == "<Database %s>" % test_db_name
